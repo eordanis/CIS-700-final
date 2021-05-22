@@ -25,7 +25,7 @@ def display_stacking_metrics(directory=None, style=None):
     df = pd.read_csv('results/stacking_classifier_metrics.csv')
     df_plot = df[["Classifier","Accuracy","Variance"]]
     df.set_index(["Classifier"],inplace=True)
-    df.plot(kind=style,alpha=0.75, rot=45, title="Classifier Metrics").legend(loc='upper left')
+    df.plot(kind=style,alpha=0.75, rot=45)
     plt.xlabel("")
     plt.show()
 

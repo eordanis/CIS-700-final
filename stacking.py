@@ -1,5 +1,5 @@
-# import warnings filter
-import warnings
+import getopt
+import sys
 
 # compare ensemble to each standalone models for regression
 import pandas as pd
@@ -27,8 +27,6 @@ beginMsg = "Beginning Classification Modeling...\n"
 completeMsg = "\n******** Completed Classification Modeling ********\n"
 directory = '/content/CIS-700-final/results/'
 RANDOM_SEED = 0
-iris_dataset = pd.read_csv("data/iris.csv")
-
 
 def display_time_elapsed(start):
     if start > 0 :
@@ -44,8 +42,14 @@ def display_time_elapsed(start):
         print(te)
 
 # get the dataset
-def get_dataset():
-    X, y = iris_dataset.iloc[:,0:4], iris_dataset.iloc[:,4]
+def get_dataset(data_loc):
+    dataset = pd.read_csv(data_loc)
+    if data_loc == 'data/iris.csv':
+        X, y = dataset.iloc[:,0:4], dataset.iloc[:,4]
+    else:
+        X, y = dataset.iloc[:,0:1], dataset.iloc[:,1]
+        encoder_object = LabelEncoder()
+        X = encoder_object.fit_transform(X) #comment out if using iris
     encoder_object = LabelEncoder()
     y = encoder_object.fit_transform(y)
     return X, y
@@ -87,52 +91,72 @@ def evaluate_model(model, X, y):
 	scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv)
 	return scores
 
-print(starbanner)
-print('\tStack Ensemble Classifier Example')
-print(starbanner)
-print(beginMsg)
-print('Recording Time Elapse...\n')
-start = time.time()
-print('Accuracy\tVariance (+/-)\tClassifer\n')
 
-# define dataset
-X, y = get_dataset()
+if __name__ == '__main__':
 
-# get the models to evaluate
-models = get_models()
+    argvals = ' '.join(sys.argv[1:])
+    if argvals != '':
+        opts, args = getopt.getopt(sys.argv[1:], "hg:t:d:o:p:")
+        opt_arg = dict(opts)
+        if '-h' in opt_arg.keys():
+            print('usage: python stacking.py')
+            print('       -W ignore python stacking.py')
+            print('       -W ignore python stacking.py -d <your_data_location>')
+            sys.exit(0)
 
-# evaluate the models and store results
-results, names = list(), list()
+        data_loc = None
+        if '-d' in opt_arg.keys():
+            data_loc = opt_arg['-d']
+        else:
+            print('Unspecified Data Set: Defaulting to iris dataset')
+            dataLoc = "data/iris.csv"
 
-log = open(directory + 'stacking_classifier_metrics.csv', 'w')
-#add log1 file headers
-log.write('Classifier,')
-log.write('Accuracy,')
-log.write('Variance')
-log.write('\n')
-log.flush()
+    print(starbanner)
+    print('\tStack Ensemble Classifier Example')
+    print(starbanner)
+    print(beginMsg)
+    print('Recording Time Elapse...\n')
+    start = time.time()
+    print('Accuracy\tVariance (+/-)\tClassifer\n')
 
-for name, model in models.items():
-    scores = evaluate_model(model, X, y)
-    results.append(scores)
-    names.append(name)
-    acc_r = np.round(scores.mean(),4)
-    std_r = np.round(scores.std(),4)
-    log.write(name + ',')
-    log.write(str(acc_r) + ',')
-    log.write(str(std_r))
+    # define dataset
+    X, y = get_dataset(data_loc)
+
+    # get the models to evaluate
+    models = get_models()
+
+    # evaluate the models and store results
+    results, names = list(), list()
+
+    log = open(directory + 'stacking_classifier_metrics.csv', 'w')
+    #add log1 file headers
+    log.write('Classifier,')
+    log.write('Accuracy,')
+    log.write('Variance')
     log.write('\n')
     log.flush()
-    print('%.3f\t\t%.3f\t\t%s  ' % (acc_r, std_r, name))
 
-log.close()
+    for name, model in models.items():
+        scores = evaluate_model(model, X, y)
+        results.append(scores)
+        names.append(name)
+        acc_r = np.round(scores.mean(),4)
+        std_r = np.round(scores.std(),4)
+        log.write(name + ',')
+        log.write(str(acc_r) + ',')
+        log.write(str(std_r))
+        log.write('\n')
+        log.flush()
+        print('%.3f\t\t%.3f\t\t%s  ' % (acc_r, std_r, name))
 
-# plot model performance for comparison
-pyplot.boxplot(results, labels=names, showmeans=True)
-pyplot.show()
+    log.close()
 
-# save plot chart image as png
-pyplot.savefig(directory + 'stacking_classifier_decision_region_improved.png')
+    # plot model performance for comparison
+    pyplot.boxplot(results, labels=names, showmeans=True)
+    pyplot.show()
 
-print(completeMsg)
-display_time_elapsed(start)
+    # save plot chart image as png
+    pyplot.savefig(directory + 'stacking_classifier_decision_region_improved.png')
+
+    print(completeMsg)
+    display_time_elapsed(start)
