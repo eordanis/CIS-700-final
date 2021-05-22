@@ -116,20 +116,18 @@ for name, model in models.items():
     scores = evaluate_model(model, X, y)
     results.append(scores)
     names.append(name)
-    acc_r = np.round(scores.mean(),4)
-    std_r = np.round(scores.std(),4)
-    log.write(name + ',')
-    log.write(str(acc_r) + ',')
-    log.write(str(std_r) + ',')
-    log.write('\n')
-    log.flush()
-    print('%.3f\t\t%.3f\t\t%s  ' % (acc_r, std_r, name))
+    acc = mean(scores)
+    std = std(scores)
+    log.write(str(acc) + ',')
+    log.write(str(std) + ',')
+    #print('Accuracy: %.3f \t Variance: (+/-) (%.3f) \tClassifier: %s  ' % (mean(scores), std(scores), name))
+    print('%.3f\t\t%.3f\t\t%s  ' % acc, std, name))
 
 log.close()
 
 # plot model performance for comparison
 pyplot.boxplot(results, labels=names, showmeans=True)
-pyplot.show()
+display(pyplot.show())
 
 # save plot chart image as png
 pyplot.savefig(directory + 'stacking_classifier_decision_region_improved.png')
