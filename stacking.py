@@ -108,7 +108,7 @@ log = open(directory + 'stacking_classifier_metrics.csv', 'w')
 #add log1 file headers
 log.write('Classifier,')
 log.write('Accuracy,')
-log.write('Variance,')
+log.write('Variance')
 log.write('\n')
 log.flush()
 
@@ -120,7 +120,7 @@ for name, model in models.items():
     std_r = np.round(scores.std(),4)
     log.write(name + ',')
     log.write(str(acc_r) + ',')
-    log.write(str(std_r) + ',')
+    log.write(str(std_r))
     log.write('\n')
     log.flush()
     print('%.3f\t\t%.3f\t\t%s  ' % (acc_r, std_r, name))
