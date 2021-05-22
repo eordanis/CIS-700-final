@@ -4,20 +4,20 @@ import sys
 # compare ensemble to each standalone models for regression
 import pandas as pd
 import numpy as np
+import re
 from numpy import mean
 from numpy import std
 import time
 from IPython.display import display
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import RepeatedKFold
+from sklearn.model_selection import cross_val_score, train_test_split, RepeatedKFold, GridSearchCV
 from mlxtend.classifier import StackingClassifier
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, AdaBoostClassifier
 from sklearn.linear_model import RidgeClassifier, LogisticRegression
-from sklearn.model_selection import GridSearchCV, cross_val_score
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.svm import SVC
 from matplotlib import pyplot
 
@@ -42,25 +42,32 @@ def display_time_elapsed(start):
         print(te)
 
 # get the dataset
-def get_dataset(data_loc):
+def get_dataset(data_loc=None):
     dataset = pd.read_csv(data_loc)
     if data_loc == 'data/iris.csv':
-        X, y = dataset.iloc[:,0:4], dataset.iloc[:,4]
-    else:
-        X, y = dataset.iloc[:,0:1], dataset.iloc[:,1]
+        X_train, y_train = dataset.iloc[:,0:4], dataset.iloc[:,4]
         encoder_object = LabelEncoder()
-        X = encoder_object.fit_transform(X) #comment out if using iris
-    encoder_object = LabelEncoder()
-    y = encoder_object.fit_transform(y)
-    return X, y
+        y_train = encoder_object.fit_transform(y_train)
+        return X_train, y_train, None, None
+    else:
+        dataset['clean_text'] = dataset['Text'].map(lambda x: re.sub('[^a-zA-Z]',' ',x))
+        dataset['clean_text'] = dataset['Text'].map(lambda x: x.lower())
+        train_clean = dataset[dataset.Sentiment != -12345]
+        test_clean = dataset[dataset.Sentiment == -12345]
+        test_clean.drop(['Sentiment'], axis=1, inplace=True)
+        vect = TfidfVectorizer(ngram_range=(1,3))
+        y_train = train_clean.Sentiment.values
+        X_train_clean = train_clean.clean_text.values
+        X_tfidf = vect.fit_transform(X_train_clean) # Using original phrase
+        X_train , X_test, y_train , y_test = train_test_split(X_tfidf,y_train,test_size = 0.2)
+        return X_train, y_train, X_test, y_test
  
 # get a stacking ensemble of models
-def get_stacking():
+def get_stacking(X_train=None, y_train=None):
     # define the base models
     level0 = list()
     level0.append(RandomForestClassifier(n_estimators=10, random_state=RANDOM_SEED))
     level0.append(KNeighborsClassifier(n_neighbors=2))
-    level0.append(GaussianNB())
     level0.append(LogisticRegression(random_state=RANDOM_SEED))
     level0.append(ExtraTreesClassifier(n_estimators=5, random_state=RANDOM_SEED))
     level0.append(DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=RANDOM_SEED))
@@ -70,25 +77,26 @@ def get_stacking():
     level1 = LogisticRegression(random_state=RANDOM_SEED)
     # define the stacking ensemble
     model = StackingClassifier(classifiers=level0, meta_classifier=level1, use_probas=True, average_probas=False)
+    if X_train is not None and y_train is not None:
+        model.fit(X_train, y_train)
     return model
  
 # get a list of models to evaluate
-def get_models():
+def get_models(X_train=None, y_train=None):
     models = dict()
     models['RandomForest'] = RandomForestClassifier(n_estimators=10, random_state=RANDOM_SEED)
     models['KNeighbors'] = KNeighborsClassifier(n_neighbors=2)
-    models['GaussianNB'] = GaussianNB()
     models['LogisticRegression'] = LogisticRegression(random_state=RANDOM_SEED)
     models['ExtraTrees'] = ExtraTreesClassifier(n_estimators=5, random_state=RANDOM_SEED)
     models['DecisionTree'] = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=RANDOM_SEED)
     models['AdaBoost'] = AdaBoostClassifier(n_estimators=100)
-    models['Stacking'] = get_stacking()
+    models['Stacking'] = get_stacking(X_train,y_train)
     return models
  
 # evaluate a given model using cross-validation
-def evaluate_model(model, X, y):
+def evaluate_model(model, X_train, y_train):
 	cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
-	scores = cross_val_score(model, X, y, scoring='accuracy', cv=cv)
+	scores = cross_val_score(model, X_train, y_train, scoring='accuracy', cv=cv)
 	return scores
 
 
@@ -120,7 +128,7 @@ if __name__ == '__main__':
     print('Accuracy\tVariance (+/-)\tClassifer\n')
 
     # define dataset
-    X, y = get_dataset(data_loc)
+    X_train, y_train, X_test, y_test = get_dataset(data_loc)
 
     # get the models to evaluate
     models = get_models()
@@ -137,7 +145,7 @@ if __name__ == '__main__':
     log.flush()
 
     for name, model in models.items():
-        scores = evaluate_model(model, X, y)
+        scores = evaluate_model(model, X_train, y_train)
         results.append(scores)
         names.append(name)
         acc_r = np.round(scores.mean(),4)
