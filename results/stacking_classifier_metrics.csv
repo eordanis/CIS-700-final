@@ -1,8 +1,8 @@
 Classifier,Accuracy,Variance
-RandomForest,0.596,0.1002
-KNeighbors,0.6647,0.1149
-LogisticRegression,0.6418,0.1062
-ExtraTrees,0.6223,0.1031
-DecisionTree,0.5788,0.0966
-AdaBoost,0.5357,0.1033
-Stacking,0.6785,0.0888
+RandomForest,0.5854,0.1013
+KNeighbors,0.6414,0.0895
+LogisticRegression,0.6233,0.118
+ExtraTrees,0.5875,0.1173
+DecisionTree,0.5394,0.1139
+AdaBoost,0.5442,0.1078
+Stacking,0.6371,0.1174

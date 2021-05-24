@@ -39,9 +39,6 @@ def display_stacking_metrics(directory=None, style=None, adjusted=None):
     plt.xlabel("Values")
     plt.show()
 
-    # save metrics to .png for later use in pdf report
-    plt.savefig(directory + 'classifier_metric_chart' + adjusted + '.png')
-
 
 def display_comparision_dataframe(directory=None):
     if directory is None:
