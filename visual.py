@@ -69,7 +69,7 @@ def display_comparision_metrics(directory=None, style=None):
     new_df = new_df.reindex(sorted(new_df.columns), axis=1)
     df_plot = new_df[["Classifier","Acc_Standard","Acc_Adjusted","Var_Standard", "Var_Adjusted"]]
     df_plot.set_index(["Classifier"],inplace=True)
-    df_plot.plot(kind=style', alpha=0.75, title='Classifier Metrics', figsize=(10, 10))
+    df_plot.plot(kind=style, alpha=0.75, title='Classifier Metrics', figsize=(10, 10))
     plt.xlabel("Values")
     plt.show()       
 
