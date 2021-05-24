@@ -63,18 +63,28 @@ def get_dataset(data_loc=None):
         return X_train, y_train, X_test, y_test
  
 # get a stacking ensemble of models
-def get_stacking(X_train=None, y_train=None):
+def get_stacking(X_train=None, y_train=None, adjust_settings=None):
     # define the base models
     level0 = list()
-    level0.append(RandomForestClassifier(n_estimators=10, random_state=RANDOM_SEED))
-    level0.append(KNeighborsClassifier(n_neighbors=2))
-    level0.append(LogisticRegression(random_state=RANDOM_SEED))
-    level0.append(ExtraTreesClassifier(n_estimators=5, random_state=RANDOM_SEED))
-    level0.append(DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=RANDOM_SEED))
-    level0.append(AdaBoostClassifier(n_estimators=100))
+    if adjust_settings is not None:
+        level0.append(RandomForestClassifier(n_estimators=15, random_state=1))
+        level0.append(KNeighborsClassifier(n_neighbors=3))
+        level0.append(LogisticRegression(random_state=1))
+        level0.append(ExtraTreesClassifier(n_estimators=8, random_state=1))
+        level0.append(DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=1, splitter='random', min_samples_split=3))
+        level0.append(AdaBoostClassifier(n_estimators=200))
+        # define meta learner model
+        level1 = LogisticRegression(random_state=1)
+    else:
+        level0.append(RandomForestClassifier(n_estimators=10, random_state=RANDOM_SEED))
+        level0.append(KNeighborsClassifier(n_neighbors=2))
+        level0.append(LogisticRegression(random_state=RANDOM_SEED))
+        level0.append(ExtraTreesClassifier(n_estimators=5, random_state=RANDOM_SEED))
+        level0.append(DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=RANDOM_SEED))
+        level0.append(AdaBoostClassifier(n_estimators=100))
+        # define meta learner model
+        level1 = LogisticRegression(random_state=RANDOM_SEED)
     
-    # define meta learner model
-    level1 = LogisticRegression(random_state=RANDOM_SEED)
     # define the stacking ensemble
     model = StackingClassifier(classifiers=level0, meta_classifier=level1, use_probas=True, average_probas=False)
     if X_train is not None and y_train is not None:
@@ -82,20 +92,31 @@ def get_stacking(X_train=None, y_train=None):
     return model
  
 # get a list of models to evaluate
-def get_models(X_train=None, y_train=None):
+def get_models(X_train=None, y_train=None, adjust_settings=None):
     models = dict()
-    models['RandomForest'] = RandomForestClassifier(n_estimators=10, random_state=RANDOM_SEED)
-    models['KNeighbors'] = KNeighborsClassifier(n_neighbors=2)
-    models['LogisticRegression'] = LogisticRegression(random_state=RANDOM_SEED)
-    models['ExtraTrees'] = ExtraTreesClassifier(n_estimators=5, random_state=RANDOM_SEED)
-    models['DecisionTree'] = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=RANDOM_SEED)
-    models['AdaBoost'] = AdaBoostClassifier(n_estimators=100)
-    models['Stacking'] = get_stacking(X_train,y_train)
+    if adjust_settings is not None:
+        models['RandomForest'] = RandomForestClassifier(n_estimators=15, random_state=1)
+        models['KNeighbors'] = KNeighborsClassifier(n_neighbors=3)
+        models['LogisticRegression'] = LogisticRegression(random_state=1)
+        models['ExtraTrees'] = ExtraTreesClassifier(n_estimators=8, random_state=1)
+        models['DecisionTree'] = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=1, splitter='random', min_samples_split=3)
+        models['AdaBoost'] = AdaBoostClassifier(n_estimators=200)
+    else:
+        models['RandomForest'] = RandomForestClassifier(n_estimators=10, random_state=RANDOM_SEED)
+        models['KNeighbors'] = KNeighborsClassifier(n_neighbors=2)
+        models['LogisticRegression'] = LogisticRegression(random_state=RANDOM_SEED)
+        models['ExtraTrees'] = ExtraTreesClassifier(n_estimators=5, random_state=RANDOM_SEED)
+        models['DecisionTree'] = DecisionTreeClassifier(criterion='gini', max_depth=2, random_state=RANDOM_SEED)
+        models['AdaBoost'] = AdaBoostClassifier(n_estimators=100)
+    models['Stacking'] = get_stacking(X_train,y_train, adjust_settings)
     return models
  
 # evaluate a given model using cross-validation
-def evaluate_model(model, X_train, y_train):
-	cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
+def evaluate_model(model, X_train, y_train, adjust_settings=None):
+	if adjust_settings is not None:
+		cv = RepeatedKFold(n_splits=15, n_repeats=5, random_state=RANDOM_SEED)
+	else:
+		cv = RepeatedKFold(n_splits=10, n_repeats=3, random_state=1)
 	scores = cross_val_score(model, X_train, y_train, scoring='accuracy', cv=cv)
 	return scores
 
@@ -104,12 +125,13 @@ if __name__ == '__main__':
 
     argvals = ' '.join(sys.argv[1:])
     if argvals != '':
-        opts, args = getopt.getopt(sys.argv[1:], "hg:t:d:o:p:")
+        opts, args = getopt.getopt(sys.argv[1:], "hg:t:d:o:p:a:")
         opt_arg = dict(opts)
         if '-h' in opt_arg.keys():
             print('usage: python stacking.py')
             print('       -W ignore python stacking.py')
             print('       -W ignore python stacking.py -d <your_data_location>')
+            print('       -W ignore python stacking.py -d <your_data_location> -a <settings> ')
             sys.exit(0)
 
         data_loc = None
@@ -118,6 +140,10 @@ if __name__ == '__main__':
         else:
             print('Unspecified Data Set: Defaulting to iris dataset')
             dataLoc = "data/iris.csv"
+
+        adjust_settings = None
+        if '-a' in opt_arg.keys():
+            adjust_settings = opt_arg['-a']
 
     print(starbanner)
     print('\tStack Ensemble Classifier Example')
@@ -131,12 +157,16 @@ if __name__ == '__main__':
     X_train, y_train, X_test, y_test = get_dataset(data_loc)
 
     # get the models to evaluate
-    models = get_models()
+    models = get_models(X_train, y_train, adjust_settings)
 
     # evaluate the models and store results
     results, names = list(), list()
+    
+    adjusted = ''
+    if adjust_settings is not None:
+        adjusted = '_adjusted'
 
-    log = open(directory + 'stacking_classifier_metrics.csv', 'w')
+    log = open(directory + 'stacking_classifier_metrics' + adjusted + '.csv', 'w')
     #add log1 file headers
     log.write('Classifier,')
     log.write('Accuracy,')
@@ -145,7 +175,7 @@ if __name__ == '__main__':
     log.flush()
 
     for name, model in models.items():
-        scores = evaluate_model(model, X_train, y_train)
+        scores = evaluate_model(model, X_train, y_train, adjust_settings)
         results.append(scores)
         names.append(name)
         acc_r = np.round(scores.mean(),4)
@@ -159,12 +189,14 @@ if __name__ == '__main__':
 
     log.close()
 
+    '''
     # plot model performance for comparison
     pyplot.boxplot(results, labels=names, showmeans=True)
     pyplot.show()
 
     # save plot chart image as png
     pyplot.savefig(directory + 'stacking_classifier_decision_region_improved.png')
+    '''
 
     print(completeMsg)
     display_time_elapsed(start)
