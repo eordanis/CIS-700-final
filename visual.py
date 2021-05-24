@@ -10,15 +10,16 @@ def display_stacking_dataframe(directory=None, adjusted=None):
     if directory is None:
         directory = default_dir
     
-    adjusted = ''
     if adjusted is not None:
         adjusted = '_adjusted'
+    else:
+        adjusted = ''
 
     df = pd.read_csv(default_dir + 'stacking_classifier_metrics' + adjusted + '.csv')
     display(df)
 
 
-def display_stacking_metrics(directory=None, style=None, adjusted=None):
+def display_stacking_metrics(directory=None, style=None, adjust_settings=None):
     
     if directory is None:
         directory = default_dir
@@ -26,9 +27,10 @@ def display_stacking_metrics(directory=None, style=None, adjusted=None):
     if style is None:
         style = 'barh'
     
-    adjusted = ''
     if adjusted is not None:
         adjusted = '_adjusted'
+    else:
+        adjusted = ''
 
     df = pd.read_csv(default_dir + 'stacking_classifier_metrics' + adjusted + '.csv')
     df_plot = df[["Classifier","Accuracy","Variance"]]
