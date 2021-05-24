@@ -50,8 +50,7 @@ def display_comparision_dataframe(directory=None):
     df2 = df.rename(columns={"Accuracy": "Acc_Adjusted", "Variance": "Var_Adjusted"})
     new_df = pd.merge(df1, df2,  how='left')
     new_df = new_df.reindex(sorted(new_df.columns), axis=1)
-    new_df.set_index('Classifier')
-    display(new_df)
+    display(new_df.set_index('Classifier'))
     
     
 def display_comparision_metrics(directory=None, style=None):
