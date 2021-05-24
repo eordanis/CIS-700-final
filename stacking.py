@@ -150,6 +150,8 @@ if __name__ == '__main__':
     print(starbanner)
     print(beginMsg)
     print('Recording Time Elapse...\n')
+    if adjust_settings is not None:
+        print('Running Classifiers With Adjusted Settings...')
     start = time.time()
     print('Accuracy\tVariance (+/-)\tClassifer\n')
 

@@ -19,7 +19,7 @@ def display_stacking_dataframe(directory=None, adjusted=None):
     display(df)
 
 
-def display_stacking_metrics(directory=None, style=None, adjust_settings=None):
+def display_stacking_metrics(directory=None, style=None, adjusted=None):
     
     if directory is None:
         directory = default_dir
