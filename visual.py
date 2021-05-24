@@ -20,13 +20,13 @@ def display_stacking_metrics(directory=None, style=None):
         directory = default_dir
     
     if style is None:
-        style = 'bar'
+        style = 'barh'
         
     df = pd.read_csv('results/stacking_classifier_metrics.csv')
     df_plot = df[["Classifier","Accuracy","Variance"]]
-    df.set_index(["Classifier"],inplace=True)
-    df.plot(kind=style,alpha=0.75, rot=45)
-    plt.xlabel("")
+    df_plot.set_index(["Classifier"],inplace=True)
+    df_plot.plot(kind=style, alpha=0.75, title='Classifier Metrics', figsize=(10, 10))
+    plt.xlabel("Values")
     plt.show()
 
     # save metrics to .png for later use in pdf report
