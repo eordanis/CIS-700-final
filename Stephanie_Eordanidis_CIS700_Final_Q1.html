@@ -13168,14 +13168,8 @@ Using the code from the date related portion, various settings and hyperparamter
 </ul>
 </li>
 </ul>
-<blockquote><p><strong>NOTE:</strong> Due to confusion on how to run classifiers on the text only dataset, a sentiment column was added to the eapoe text and converted into a csv. test and training data were merged and have had sentiment values while the other had default values to be used to train</p>
+<blockquote><p><strong>NOTE:</strong> Original dataset was a text only .txt dataset. Merged the original test/training dataset into a .csv column. A new sentiment column was added, in which is the target, half of the data's sentiment column was populated line by line with positive, neutral, or negative pending rating of line, while other half remained empty as to use for test.</p>
 </blockquote>
-<ul>
-<li>iris: 150 entries<ul>
-<li>150 row data set with 5 columns. Used to test classifier functionallity</li>
-</ul>
-</li>
-</ul>
 
 </div>
 </div>
@@ -13204,7 +13198,7 @@ Using the code from the date related portion, various settings and hyperparamter
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="kn">import</span> <span class="nn">shutil</span>
@@ -13239,6 +13233,41 @@ Using the code from the date related portion, various settings and hyperparamter
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Code-Process">Code Process<a class="anchor-link" href="#Code-Process">&#182;</a></h2><p>Below is a high level description of the process flow for the project code:</p>
+<blockquote><p><strong>NOTE:</strong> Under test, we first run the ensemble stackign classifier first with standard settings, then run again with adjusted settings applied at all applicable steps in below process</p>
+</blockquote>
+<ol>
+<li><p>Anaylyse Arguments</p>
+<p>a. If -d is provided, this indicates the dataset location</p>
+<p>b. If -a is provided, this indicates to apply settings changes to the ensemble run</p>
+</li>
+<li><p>Start recording the model time elapse</p>
+</li>
+<li><p>Using dataset location, define and prepare the training and test data, for text data, this means label encoding, test/training splitting, cleaning, and vectorization.</p>
+</li>
+<li><p>Then models are retrived and returned, we gather the 6 Independent Classifier modelsthat comprise the Stackinn classifier first, then the ensembled Stacking classifiers. For Stacking Classifier, we to set hyperparamters use_probas=True, average_probas=False, to use the real probabilities of the ensembled classifiers to adjust the Stacking classifier.</p>
+<p>a. When adjusted settings are applied, model hyperparameter settings are changed</p>
+</li>
+<li><p>After model retrieval, we begin evaluating the model metrics.</p>
+<p>a. We determine CV by the RepeatedKFold return</p>
+
+<pre><code> 1. When adjusted settings are applied, RepeatedKFold settings are adjusted
+
+</code></pre>
+<p>b. We determine each given models cross-validation score and append to a csv</p>
+</li>
+<li><p>After csv is populated, we generate a data table and horizontal bar chart for results discussion</p>
+</li>
+<li><p>When both standard and adjusted settings runs are completed, we generate a visual comparision under results comparisions section.</p>
+</li>
+</ol>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Data-Related">Data Related<a class="anchor-link" href="#Data-Related">&#182;</a></h2><p>For this category, Ensemble Classifier method of Stacking was selected. The purpose of applying Stacking is in order to increase prediction model accuracy. Cross validation is used to determine and improve model accuracy. For our purposes, our StackingClassifier also uses the probabiklity of stacked classifier models for even greater accuracy.</p>
 
 </div>
@@ -13246,7 +13275,7 @@ Using the code from the date related portion, various settings and hyperparamter
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="o">!</span>python3 -W ignore stacking.py -d <span class="s1">&#39;data/eapoe.csv&#39;</span>
@@ -13301,7 +13330,7 @@ Time Elapsed: 32secs
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[2]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="kn">import</span> <span class="nn">visual</span> <span class="kn">as</span> <span class="nn">vis</span>
@@ -13403,7 +13432,7 @@ Time Elapsed: 32secs
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[3]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">vis</span><span class="o">.</span><span class="n">display_stacking_metrics</span><span class="p">()</span>
@@ -13439,7 +13468,8 @@ Time Elapsed: 32secs
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Results">Results<a class="anchor-link" href="#Results">&#182;</a></h3><p>As seen by above metric results, accuracies for the models are fairly consistent. However, ensemble stacking proves to be more accurate and less variant than majority of the singular layered classifiers applied.</p>
+<p>Upone examining above code, we see accuracy and variance values for the 6 classifiers that make up the Stacking classifier independently, then we see the same performance indicators for the Stacking classifier itself.
+We can infer from the above data values, that the Stacking classifier is found to be superior to all of its comprised independent classifiers, with the exception of the Logistic Regression classifier, in which is slightly more accuracy thatn the Stacking. However, if we look at variance, The Stacking classifier is the 3rd worse performance wise, along side Logistic Regression and Extra Trees. The close nature of Logistic Regression and Stacking Classifier can be assumed related to the fact that LogisticRegression was set as the meta learner for the StackClassifier.</p>
 
 </div>
 </div>
@@ -13447,14 +13477,24 @@ Time Elapsed: 32secs
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Settings-Related:">Settings Related:<a class="anchor-link" href="#Settings-Related:">&#182;</a></h2><p>Using the same code base as seen for the above section, settings and hyperparameter values are adjusted in the classifier models in order to build a better ensemble classifier. When comparing adjusted hyperparameters settings with default, we see many of the classifier models show greater accuracy and less variance with adjusted settings. This demonstrates that hyperparameter adn setting tuning is an important factor in model performance and a valid application of ensemble learning.</p>
+<h3 id="Results">Results<a class="anchor-link" href="#Results">&#182;</a></h3><p>As seen by above metric results, accuracies for the models are fairly consistent. However, ensemble stacking proves to be more accurate and less variant than majority of the singular layered classifiers applied.</p>
+<p>Upon examination of the above tables and charts, we have a true visual guage of performance. We see accuracy and variance values for the 6 classifiers that make up the Stacking classifier independently, then we see the same performance indicators for the Stacking classifier itself.</p>
+<p>We can infer from the above data values, that the Stacking classifier is found to be superior to all of its comprised independent classifiers, with the exception of the Logistic Regression classifier, in which is slightly more accuracy thatn the Stacking. However, if we look at variance, The Stacking classifier is the 3rd worse performance wise, along side Logistic Regression and Extra Trees. The close nature of Logistic Regression and Stacking Classifier can be assumed related to the fact that LogisticRegression was set as the meta learner for the StackClassifier.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Settings-Related:">Settings Related:<a class="anchor-link" href="#Settings-Related:">&#182;</a></h2><p>Using the same code base as seen for the above section, settings and hyperparameter values are adjusted in the classifier models in order to build a better ensemble classifier. When comparing adjusted hyperparameters settings with default, we see many of the classifier models show greater accuracy and less variance with adjusted settings. This demonstrates that hyperparameter and setting tuning is an important factor in model performance and a valid application of ensemble learning.</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="o">!</span>python3 -W ignore stacking.py -d <span class="s1">&#39;data/eapoe.csv&#39;</span> -a <span class="s1">&#39;settings&#39;</span>
@@ -13511,7 +13551,7 @@ Time Elapsed: 02mins:16secs
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">vis</span><span class="o">.</span><span class="n">display_stacking_dataframe</span><span class="p">(</span><span class="n">adjusted</span><span class="o">=</span><span class="s1">&#39;true&#39;</span><span class="p">)</span>
@@ -13611,7 +13651,7 @@ Time Elapsed: 02mins:16secs
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">vis</span><span class="o">.</span><span class="n">display_stacking_metrics</span><span class="p">(</span><span class="n">adjusted</span><span class="o">=</span><span class="s1">&#39;true&#39;</span><span class="p">)</span>
@@ -13647,7 +13687,10 @@ Time Elapsed: 02mins:16secs
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Results">Results<a class="anchor-link" href="#Results">&#182;</a></h3><p>Again as with standard run, the above metric results demonstrate accuracies for the models are fairly consistent. However, ensemble stacking proves to be more accurate and less variant than majority of the singular layered classifiers applied.</p>
+<h3 id="Results">Results<a class="anchor-link" href="#Results">&#182;</a></h3><p>This run is with the Settings changed, but just as seen with the standard run, the above metric results demonstrate accuracies for the models are fairly consistent. Overall accuracies are higher than that of the standard run as well. However, ensemble stacking proves to be more accurate and less variant than majority of the singular layered classifiers applied.</p>
+<p>As seen by above metric results, accuracies for the models are fairly consistent. However, ensemble stacking proves to be more accurate and less variant than majority of the singular layered classifiers applied.</p>
+<p>Upon examination of the above tables and charts, we have a true visual guage of performance. We see accuracy and variance values for the 6 classifiers that make up the Stacking classifier independently, then we see the same performance indicators for the Stacking classifier itself.</p>
+<p>We can infer from the above data values, that the Stacking classifier is found to be superior to all of its comprised independent classifiers, with the exception of the Logistic Regression classifier, in which is slightly more accuracy thatn the Stacking. However, if we look at variance, The Stacking classifier is the 2rd worse performance wise, along side RandomForest.</p>
 
 </div>
 </div>
@@ -13657,9 +13700,8 @@ Time Elapsed: 02mins:16secs
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Compare">Compare<a class="anchor-link" href="#Compare">&#182;</a></h2><p>We will now compare the various runs.</p>
 <p>First off, we will list the hyperparameters applied to standard ensemble stack run vs the ajusted hyperparameters run.</p>
-<blockquote><p><strong>NOTE:</strong></p>
+<blockquote><p><strong>NOTE:</strong> Table values below are indicated as such:</p>
 </blockquote>
-<p>Table values below are indicated as such:</p>
 <ul>
 <li><p><em>standard</em> vs <em>adjusted</em></p>
 <ul>
@@ -13744,13 +13786,20 @@ Time Elapsed: 02mins:16secs
 </tr>
 </tbody>
 </table>
+<p>Again, it should be noted that for both runs, the Stacking classifer is run with:</p>
+<ul>
+<li>classifiers -&gt; all 6 classifiers</li>
+<li>meta_classifier -&gt; Logistic Regression</li>
+<li>use_probas=True</li>
+<li>average_probas=False</li>
+</ul>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[6]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">vis</span><span class="o">.</span><span class="n">display_comparision_dataframe</span><span class="p">()</span>
@@ -13865,7 +13914,7 @@ Time Elapsed: 02mins:16secs
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[7]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">vis</span><span class="o">.</span><span class="n">display_comparision_metrics</span><span class="p">()</span>
@@ -13901,7 +13950,7 @@ Time Elapsed: 02mins:16secs
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Comparision-Results">Comparision Results<a class="anchor-link" href="#Comparision-Results">&#182;</a></h3><p>When we examine the combined standard vs adjusted metrics, we see that although variance of adjusted metrics appear higher when compared to standard, the adjusted accuries overall are superior to that of standard with the exception of adaboost. futhermore it is important to note the difference of the stacked enseble classifier both standard and adjusted when compared with the non ensemble classifiers, as overall the ensemble learning functionallity indeed improve overall performance and accuracy comparitavely.</p>
+<h3 id="Comparision-Results">Comparision Results<a class="anchor-link" href="#Comparision-Results">&#182;</a></h3><p>When we examine the combined standard vs adjusted metrics, we see that although variance of adjusted metrics appear higher when compared to standard, the adjusted accuries overall are superior to that of standard with the exception of adaboost. More specifically, as we examine the metrics and charting, we can infer that the LogisticRegression and the Extra Trees Classifiers saw greater accuracies when run with settings manipulations vs runnign with standard settings. Futhermore it is important to note the difference of the stacked enseble classifier both standard and adjusted when compared with the non ensemble classifiers, as overall the ensemble learning functionallity indeed improve overall performance and accuracy comparitavely.</p>
 <p>From this we can conclude that ensemble learning methods of various types, when applied in a concise and proper manner, can futher the accuracy and robustness of machine learning models, resulting in more quality application and predictions.</p>
 
 </div>
