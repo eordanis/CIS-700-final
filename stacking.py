@@ -1,7 +1,5 @@
 import getopt
 import sys
-
-# compare ensemble to each standalone models for regression
 import pandas as pd
 import numpy as np
 import re
@@ -20,6 +18,15 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.svm import SVC
 from matplotlib import pyplot
+
+'''
+******************************************************************************************
+*   This file compare stacking ensemble to each standalone classifier models for indicated
+*   dataset with either standard settings or adjusted_settings when indicated.
+*   Datasets allowed are found in /data directory.
+*   Results are stored in /results directory.
+******************************************************************************************
+'''
 
 #static variables
 starbanner = '\n******************************************************************\n'
@@ -41,28 +48,36 @@ def display_time_elapsed(start):
         te += '{:02}secs\n'.format(int(seconds))
         print(te)
 
-# get the dataset
+# get the dataset for the passed data location
 def get_dataset(data_loc=None):
     dataset = pd.read_csv(data_loc)
+    # if iris (originally used to test functionallity) return iris data set split, encoded/transformed
     if data_loc == 'data/iris.csv':
         X_train, y_train = dataset.iloc[:,0:4], dataset.iloc[:,4]
         encoder_object = LabelEncoder()
         y_train = encoder_object.fit_transform(y_train)
         return X_train, y_train, None, None
     else:
+        # else is assumed eapoe data set
+        # lets first clean it up a bit, we will start by converting all text to lowercase for standardization
         dataset['clean_text'] = dataset['Text'].map(lambda x: re.sub('[^a-zA-Z]',' ',x))
         dataset['clean_text'] = dataset['Text'].map(lambda x: x.lower())
+        # here, we will split the data set by those who have sentiment values (training) and those who dont (test)
         train_clean = dataset[dataset.Sentiment != -12345]
         test_clean = dataset[dataset.Sentiment == -12345]
         test_clean.drop(['Sentiment'], axis=1, inplace=True)
+        # setup the vectorizor, note TfidfVectorizer is of feature_extraction nature
         vect = TfidfVectorizer(ngram_range=(1,3))
         y_train = train_clean.Sentiment.values
         X_train_clean = train_clean.clean_text.values
-        X_tfidf = vect.fit_transform(X_train_clean) # Using original phrase
+         # Using original phrase, apply feature_extraction vectorizor
+        X_tfidf = vect.fit_transform(X_train_clean)
+        # split the data
         X_train , X_test, y_train , y_test = train_test_split(X_tfidf,y_train,test_size = 0.2)
         return X_train, y_train, X_test, y_test
  
 # get a stacking ensemble of models
+# return settings adjusted stacking ensemble of models if adjust_settings is set, else standard stacking ensemble of models
 def get_stacking(X_train=None, y_train=None, adjust_settings=None):
     # define the base models
     level0 = list()
@@ -92,6 +107,7 @@ def get_stacking(X_train=None, y_train=None, adjust_settings=None):
     return model
  
 # get a list of models to evaluate
+# return settings adjusted models if adjust_settings is set, else standard models
 def get_models(X_train=None, y_train=None, adjust_settings=None):
     models = dict()
     if adjust_settings is not None:
@@ -169,7 +185,7 @@ if __name__ == '__main__':
         adjusted = '_adjusted'
 
     log = open(directory + 'stacking_classifier_metrics' + adjusted + '.csv', 'w')
-    #add log1 file headers
+    #add log file headers
     log.write('Classifier,')
     log.write('Accuracy,')
     log.write('Variance')
@@ -190,15 +206,6 @@ if __name__ == '__main__':
         print('%.3f\t\t%.3f\t\t%s  ' % (acc_r, std_r, name))
 
     log.close()
-
-    '''
-    # plot model performance for comparison
-    pyplot.boxplot(results, labels=names, showmeans=True)
-    pyplot.show()
-
-    # save plot chart image as png
-    pyplot.savefig(directory + 'stacking_classifier_decision_region_improved.png')
-    '''
 
     print(completeMsg)
     display_time_elapsed(start)

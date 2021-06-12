@@ -2,6 +2,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from IPython.display import display
 
+'''
+******************************************************************************************
+*   This file reads from data stored in /results directory to generate visual charting
+*   and dataframes for individual metric and comparative metrics.
+*   Individual metrics refers to accuracy and variance for classifiers with standard settings
+*   Comparative metrics refers to accuracy and variance for classifiers with adjusted settings
+******************************************************************************************
+'''
+
+# static variables
 default_dir = 'results/'
 
 
